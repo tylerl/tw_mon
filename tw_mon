@@ -1,0 +1,80 @@
+#!/bin/bash
+
+######################################################
+# separate email addresses with spaces
+EMAIL_TO="_EMAIL_TO_"
+
+EMAIL_FROM="_EMAIL_FROM_"
+
+# The path to your tw_cli executable
+TW_CLI=/opt/raid/tw_cli
+
+# Which controller to check (usually 0)
+CONTROLLER=0
+
+# How to send mail
+SENDMAIL="/usr/sbin/sendmail -t"
+
+# Seconds between checks
+POLL=300
+
+###########################################################################
+###########################################################################
+
+OLDFAILED=
+
+twcli() {
+	$TW_CLI /c$CONTROLLER show
+}
+
+fail() {
+	echo "Failed. Shutting down." >&2
+	exit 1
+}
+
+send_alert() {
+	for TO in $EMAIL_TO; do
+		$SENDMAIL <<-END
+			To: <$TO>
+			From: <$EMAIL_FROM>
+			Subject: RAID status change on `hostname`
+
+			The raid status has changed on `hostname`. Please inspect for signs of failure.
+
+			Current server time: `date`
+
+			Output of "$TW_CLI":
+			`twcli`
+		END
+	done
+}
+
+check() {
+	FAILED=
+	twcli | while read LINE; do
+		if [ "${LINE:0:3}" == "u" ] ; then
+			read UINT TYPE STATUS REST <<< "$LINE"
+			if [ "$STATUS" != "OK" ] ; then
+				FAILED="${FAILED}${UNIT}(${STATUS}) "
+			fi
+		fi
+		if [ "${LINE:0:1}" == "p" ] ; then
+			read PORT STATUS REST <<< "$LINE"
+			if [ "$STATUS" != "OK" ] ; then
+				FAILED="${FAILED}${PORT}(${STATUS}) "
+			fi
+		fi
+	done 
+	[ $PIPESTATUS == 0 ] || fail
+
+	if [ "$FAILED" != "$OLDFAILED" ] ; then
+		send_alert 
+		OLDFAILED="$FAILED"
+	fi
+}
+
+while true ; do
+	check
+	sleep $POLL
+done
+
