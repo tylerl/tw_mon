@@ -51,10 +51,10 @@ send_alert() {
 
 check() {
 	FAILED=
-	twcli | while read LINE; do
-		if [ "${LINE:0:3}" == "u" ] ; then
-			read UINT TYPE STATUS REST <<< "$LINE"
-			if [ "$STATUS" != "OK" ] ; then
+	while read LINE; do
+		if [ "${LINE:0:1}" == "u" ] ; then
+			read UNIT TYPE STATUS REST <<< "$LINE"
+			if [ "$STATUS" != "OK" ] && [ "$STATUS" != "VERIFYING" ]  ; then
 				FAILED="${FAILED}${UNIT}(${STATUS}) "
 			fi
 		fi
@@ -64,8 +64,7 @@ check() {
 				FAILED="${FAILED}${PORT}(${STATUS}) "
 			fi
 		fi
-	done 
-	[ $PIPESTATUS == 0 ] || fail
+	done < <(twcli)
 
 	if [ "$FAILED" != "$OLDFAILED" ] ; then
 		send_alert 
