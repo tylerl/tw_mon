@@ -7,10 +7,10 @@ tw_cli program to interface with the card.
 Install
 -------
 
-This project does not include tw_cli, which can be downloaded here:
-http://www.lsi.com/DistributionSystem/User/AssetMgr.aspx?asset=53593
+This project does not include `tw_cli`, which can be downloaded here:
+<http://www.lsi.com/DistributionSystem/User/AssetMgr.aspx?asset=53593>
 
-Be sure to replace _EMAIL_TO_ and _EMAIL_FROM_ with the correct email
+Be sure to replace `_EMAIL_TO_` and `_EMAIL_FROM_` with the correct email
 addresses, or this script won't work properly. Also, check and adjust
 the other configuration values at the top of the script to reflect
 the appropriate paths and settings for your server.
@@ -22,7 +22,7 @@ When executed, this script runs persistently in the background, checking
 the status of the RAID controller ever 5 minutes. If the status ever
 changes (from good to bad, bad to good, or anything in between), this
 script will send a notification email with the RAID status as reported
-by tw_cli.
+by `tw_cli`.
 
 To run in the background, use the shell's background function, as below:
 
